@@ -1,3 +1,10 @@
+#######################################################
+# Adapted makefile for creating JPEG read functions:
+#   for both 8-bits and 12-bits JPEG
+#   creates lib-file for Linux or DLL-file for Windows
+#   To compile for Linux: make -f makefile.ansi
+#   To compile for Windows: make -f makefile.ansi all_win
+#######################################################
 # Makefile for Independent JPEG Group's software
 
 # This makefile is suitable for Unix-like systems with ANSI-capable compilers.
@@ -6,7 +13,7 @@
 # Read installation instructions before saying "make" !!
 
 # The name of your C compiler:
-CC= cc
+CC= gcc 
 
 # You may need to adjust these cc options:
 CFLAGS= -O
@@ -95,22 +102,43 @@ DOBJECTS= djpeg.o wrppm.o wrgif.o wrtarga.o wrrle.o wrbmp.o rdcolmap.o \
         cdjpeg.o
 TROBJECTS= jpegtran.o rdswitch.o cdjpeg.o transupp.o
 
+########################################################
+# Start choose Linux or Windows
+########################################################
+########### LINUX ###############
+all_lin: libjpeg812.so
 
-all: libjpeg.a cjpeg djpeg jpegtran rdjpgcom wrjpgcom
+########### WINDOWS ###############
+all_win: jpeg812.dll
 
-libjpeg.a: $(LIBOBJECTS)
-	$(RM) libjpeg.a
-	$(AR) libjpeg.a  $(LIBOBJECTS)
-	$(AR2) libjpeg.a
 
-cjpeg: $(COBJECTS) libjpeg.a
-	$(LN) $(LDFLAGS) -o cjpeg $(COBJECTS) libjpeg.a $(LDLIBS)
+########################################################
+# End choose Linux or Windows
+########################################################
 
-djpeg: $(DOBJECTS) libjpeg.a
-	$(LN) $(LDFLAGS) -o djpeg $(DOBJECTS) libjpeg.a $(LDLIBS)
+libjpeg812.so: $(LIBOBJECTS) wrppm.o
+	$(RM) libjpeg812.so
+	$(CC) -o libjpeg812.so -shared $(LIBOBJECTS) wrppm.o
 
-jpegtran: $(TROBJECTS) libjpeg.a
-	$(LN) $(LDFLAGS) -o jpegtran $(TROBJECTS) libjpeg.a $(LDLIBS)
+jpeg812.dll: $(LIBOBJECTS) wrppm.o
+	dlltool --export-all --output-def jpeg.def $(LIBOBJECTS) wrppm.o
+	dlltool --dllname jpeg812.dll --def jpeg.def --output-lib libjpeg812.a
+	dllwrap -o jpeg812.dll --def jpeg.def $(LIBOBJECTS) wrppm.o
+
+libjpeg812.a: $(LIBOBJECTS)
+	$(RM) libjpeg812.a
+	$(AR) libjpeg812.a  $(LIBOBJECTS)
+	$(AR2) libjpeg812.a
+
+
+cjpeg: $(COBJECTS) libjpeg812.a
+	$(LN) $(LDFLAGS) -o cjpeg $(COBJECTS) libjpeg812.a $(LDLIBS)
+
+djpeg: $(DOBJECTS) libjpeg812.a
+	$(LN) $(LDFLAGS) -o djpeg $(DOBJECTS) libjpeg812.a $(LDLIBS)
+
+jpegtran: $(TROBJECTS) libjpeg812.a
+	$(LN) $(LDFLAGS) -o jpegtran $(TROBJECTS) libjpeg812.a $(LDLIBS)
 
 rdjpgcom: rdjpgcom.o
 	$(LN) $(LDFLAGS) -o rdjpgcom rdjpgcom.o $(LDLIBS)
@@ -118,13 +146,9 @@ rdjpgcom: rdjpgcom.o
 wrjpgcom: wrjpgcom.o
 	$(LN) $(LDFLAGS) -o wrjpgcom wrjpgcom.o $(LDLIBS)
 
-jconfig.h: jconfig.doc
-	echo You must prepare a system-dependent jconfig.h file.
-	echo Please read the installation directions in install.doc.
-	exit 1
 
 clean:
-	$(RM) *.o cjpeg djpeg jpegtran libjpeg.a rdjpgcom wrjpgcom
+	$(RM) *.o cjpeg djpeg jpegtran libjpeg812.a rdjpgcom wrjpgcom
 	$(RM) core testout*
 
 test: cjpeg djpeg jpegtran

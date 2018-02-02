@@ -69,6 +69,10 @@ typedef my_color_deconverter * my_cconvert_ptr;
 LOCAL(void)
 build_ycc_rgb_table (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   int i;
   INT32 x;
@@ -246,6 +250,9 @@ ycck_cmyk_convert (j_decompress_ptr cinfo,
 		   JSAMPIMAGE input_buf, JDIMENSION input_row,
 		   JSAMPARRAY output_buf, int num_rows)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   register int y, cb, cr;
   register JSAMPROW outptr;

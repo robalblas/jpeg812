@@ -67,6 +67,7 @@ struct djpeg_dest_struct {
    */
   JSAMPARRAY buffer;
   JDIMENSION buffer_height;
+  boolean big_endian;
 };
 
 

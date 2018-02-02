@@ -74,12 +74,18 @@
  * shows that the values given below are the most effective.
  */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#define CONST_BITS  13
+#else
+
 #if BITS_IN_JSAMPLE == 8
 #define CONST_BITS  13
 #define PASS1_BITS  2
 #else
 #define CONST_BITS  13
 #define PASS1_BITS  1		/* lose a little precision to avoid overflow */
+#endif
+
 #endif
 
 /* Some C compilers fail to reduce "FIX(constant)" at compile time, thus
@@ -149,6 +155,10 @@ jpeg_idct_islow (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 		 JCOEFPTR coef_block,
 		 JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   INT32 tmp0, tmp1, tmp2, tmp3;
   INT32 tmp10, tmp11, tmp12, tmp13;
   INT32 z1, z2, z3, z4, z5;
@@ -159,6 +169,9 @@ jpeg_idct_islow (j_decompress_ptr cinfo, jpeg_component_info * compptr,
   JSAMPLE *range_limit = IDCT_range_limit(cinfo);
   int ctr;
   int workspace[DCTSIZE2];	/* buffers data between passes */
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PASS1_BITS=(cinfo->bits_in_jsample==8? 2 : 1);
+#endif
   SHIFT_TEMPS
 
   /* Pass 1: process columns from input, store into work array. */

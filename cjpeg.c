@@ -23,6 +23,7 @@
  * works regardless of which command line style is used.
  */
 
+
 #include "cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
 #include "jversion.h"		/* for version message */
 
@@ -34,6 +35,10 @@
 #ifdef THINK_C
 #include <console.h>		/* Think declares it here */
 #endif
+#endif
+
+#ifdef BITS_IN_JSAMPLE_8_12
+int bits_in_jsample=8;
 #endif
 
 

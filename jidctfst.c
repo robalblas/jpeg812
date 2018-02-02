@@ -73,12 +73,18 @@
  * are fewer one-bits in the constants).
  */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#define CONST_BITS  8
+#else
+
 #if BITS_IN_JSAMPLE == 8
 #define CONST_BITS  8
 #define PASS1_BITS  2
 #else
 #define CONST_BITS  8
 #define PASS1_BITS  1		/* lose a little precision to avoid overflow */
+#endif
+
 #endif
 
 /* Some C compilers fail to reduce "FIX(constant)" at compile time, thus
@@ -124,7 +130,12 @@
  * multiplication will do.  For 12-bit data, the multiplier table is
  * declared INT32, so a 32-bit multiply will be used.
  */
+#ifdef BITS_IN_JSAMPLE_8_12
+#define DEQUANTIZE8(coef,quantval)  (((IFAST_MULT_TYPE) (coef)) * (quantval))
+#define DEQUANTIZE12(coef,quantval)  \
+	DESCALE((coef)*(quantval), IFAST_SCALE_BITS-PASS1_BITS)
 
+#else
 #if BITS_IN_JSAMPLE == 8
 #define DEQUANTIZE(coef,quantval)  (((IFAST_MULT_TYPE) (coef)) * (quantval))
 #else
@@ -132,12 +143,18 @@
 	DESCALE((coef)*(quantval), IFAST_SCALE_BITS-PASS1_BITS)
 #endif
 
+#endif
 
 /* Like DESCALE, but applies to a DCTELEM and produces an int.
  * We assume that int right shift is unsigned if INT32 right shift is.
  */
 
 #ifdef RIGHT_SHIFT_IS_UNSIGNED
+
+#ifdef BITS_IN_JSAMPLE_8_12
+right_is_unsigned! Niet geimlementeerd!
+#endif
+
 #define ISHIFT_TEMPS	DCTELEM ishift_temp;
 #if BITS_IN_JSAMPLE == 8
 #define DCTELEMBITS  16		/* DCTELEM may be 16 or 32 bits */
@@ -169,6 +186,10 @@ jpeg_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 		 JCOEFPTR coef_block,
 		 JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   DCTELEM tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
   DCTELEM tmp10, tmp11, tmp12, tmp13;
   DCTELEM z5, z10, z11, z12, z13;
@@ -179,6 +200,10 @@ jpeg_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
   JSAMPLE *range_limit = IDCT_range_limit(cinfo);
   int ctr;
   int workspace[DCTSIZE2];	/* buffers data between passes */
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PASS1_BITS=(cinfo->bits_in_jsample==8? 2 : 1);
+#endif
+
   SHIFT_TEMPS			/* for DESCALE */
   ISHIFT_TEMPS			/* for IDESCALE */
 
@@ -202,7 +227,15 @@ jpeg_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	inptr[DCTSIZE*5] == 0 && inptr[DCTSIZE*6] == 0 &&
 	inptr[DCTSIZE*7] == 0) {
       /* AC terms all zero */
+#ifdef BITS_IN_JSAMPLE_8_12
+      int dcval;
+      if (cinfo->bits_in_jsample==8)
+        dcval=(int) DEQUANTIZE8(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
+      else
+        dcval=(int) DEQUANTIZE12(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
+#else
       int dcval = (int) DEQUANTIZE(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
+#endif
 
       wsptr[DCTSIZE*0] = dcval;
       wsptr[DCTSIZE*1] = dcval;
@@ -221,10 +254,27 @@ jpeg_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
     
     /* Even part */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+    if (cinfo->bits_in_jsample==8)
+    {
+      tmp0 = DEQUANTIZE8(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
+      tmp1 = DEQUANTIZE8(inptr[DCTSIZE*2], quantptr[DCTSIZE*2]);
+      tmp2 = DEQUANTIZE8(inptr[DCTSIZE*4], quantptr[DCTSIZE*4]);
+      tmp3 = DEQUANTIZE8(inptr[DCTSIZE*6], quantptr[DCTSIZE*6]);
+    }
+    else
+    {
+      tmp0 = DEQUANTIZE12(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
+      tmp1 = DEQUANTIZE12(inptr[DCTSIZE*2], quantptr[DCTSIZE*2]);
+      tmp2 = DEQUANTIZE12(inptr[DCTSIZE*4], quantptr[DCTSIZE*4]);
+      tmp3 = DEQUANTIZE12(inptr[DCTSIZE*6], quantptr[DCTSIZE*6]);
+    }
+#else
     tmp0 = DEQUANTIZE(inptr[DCTSIZE*0], quantptr[DCTSIZE*0]);
     tmp1 = DEQUANTIZE(inptr[DCTSIZE*2], quantptr[DCTSIZE*2]);
     tmp2 = DEQUANTIZE(inptr[DCTSIZE*4], quantptr[DCTSIZE*4]);
     tmp3 = DEQUANTIZE(inptr[DCTSIZE*6], quantptr[DCTSIZE*6]);
+#endif
 
     tmp10 = tmp0 + tmp2;	/* phase 3 */
     tmp11 = tmp0 - tmp2;
@@ -239,11 +289,27 @@ jpeg_idct_ifast (j_decompress_ptr cinfo, jpeg_component_info * compptr,
     
     /* Odd part */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+    if (cinfo->bits_in_jsample==8)
+    {
+      tmp4 = DEQUANTIZE8(inptr[DCTSIZE*1], quantptr[DCTSIZE*1]);
+      tmp5 = DEQUANTIZE8(inptr[DCTSIZE*3], quantptr[DCTSIZE*3]);
+      tmp6 = DEQUANTIZE8(inptr[DCTSIZE*5], quantptr[DCTSIZE*5]);
+      tmp7 = DEQUANTIZE8(inptr[DCTSIZE*7], quantptr[DCTSIZE*7]);
+    }
+    else
+    {
+      tmp4 = DEQUANTIZE12(inptr[DCTSIZE*1], quantptr[DCTSIZE*1]);
+      tmp5 = DEQUANTIZE12(inptr[DCTSIZE*3], quantptr[DCTSIZE*3]);
+      tmp6 = DEQUANTIZE12(inptr[DCTSIZE*5], quantptr[DCTSIZE*5]);
+      tmp7 = DEQUANTIZE12(inptr[DCTSIZE*7], quantptr[DCTSIZE*7]);
+    }
+#else
     tmp4 = DEQUANTIZE(inptr[DCTSIZE*1], quantptr[DCTSIZE*1]);
     tmp5 = DEQUANTIZE(inptr[DCTSIZE*3], quantptr[DCTSIZE*3]);
     tmp6 = DEQUANTIZE(inptr[DCTSIZE*5], quantptr[DCTSIZE*5]);
     tmp7 = DEQUANTIZE(inptr[DCTSIZE*7], quantptr[DCTSIZE*7]);
-
+#endif
     z13 = tmp6 + tmp5;		/* phase 6 */
     z10 = tmp6 - tmp5;
     z11 = tmp4 + tmp7;

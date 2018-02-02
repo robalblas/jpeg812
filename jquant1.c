@@ -124,12 +124,17 @@ static const UINT8 base_dither_matrix[ODITHER_SIZE][ODITHER_SIZE] = {
  * segment to hold the error array; so it is allocated with alloc_large.
  */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+typedef INT32 FSERROR;		/* may need more than 16 bits */
+typedef INT32 LOCFSERROR;	/* be sure calculation temps are big enough */
+#else
 #if BITS_IN_JSAMPLE == 8
 typedef INT16 FSERROR;		/* 16 bits should be enough */
 typedef int LOCFSERROR;		/* use 'int' for calculation temps */
 #else
 typedef INT32 FSERROR;		/* may need more than 16 bits */
 typedef INT32 LOCFSERROR;	/* be sure calculation temps are big enough */
+#endif
 #endif
 
 typedef FSERROR FAR *FSERRPTR;	/* pointer to error array (in FAR storage!) */
@@ -246,6 +251,9 @@ output_value (j_decompress_ptr cinfo, int ci, int j, int maxj)
 /* Return j'th output value, where j will range from 0 to maxj */
 /* The output values must fall in 0..MAXJSAMPLE in increasing order */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   /* We always provide values 0 and MAXJSAMPLE for each component;
    * any additional values are equally spaced between these limits.
    * (Forcing the upper and lower values to the limits ensures that
@@ -260,6 +268,9 @@ largest_input_value (j_decompress_ptr cinfo, int ci, int j, int maxj)
 /* Return largest input value that should map to j'th output value */
 /* Must have largest(j=0) >= 0, and largest(j=maxj) >= MAXJSAMPLE */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   /* Breakpoints are halfway between values returned by output_value */
   return (int) (((INT32) (2*j + 1) * MAXJSAMPLE + maxj) / (2*maxj));
 }
@@ -332,6 +343,9 @@ create_colormap (j_decompress_ptr cinfo)
 LOCAL(void)
 create_colorindex (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cquantize_ptr cquantize = (my_cquantize_ptr) cinfo->cquantize;
   JSAMPROW indexptr;
   int i,j,k, nci, blksize, val, pad;
@@ -395,6 +409,9 @@ create_colorindex (j_decompress_ptr cinfo)
 LOCAL(ODITHER_MATRIX_PTR)
 make_odither_array (j_decompress_ptr cinfo, int ncolors)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   ODITHER_MATRIX_PTR odither;
   int j,k;
   INT32 num,den;
@@ -820,6 +837,9 @@ new_color_map_1_quant (j_decompress_ptr cinfo)
 GLOBAL(void)
 jinit_1pass_quantizer (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cquantize_ptr cquantize;
 
   cquantize = (my_cquantize_ptr)

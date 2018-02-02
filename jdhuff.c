@@ -93,9 +93,13 @@ start_pass_huff_decoder (j_decompress_ptr cinfo)
    * This ought to be an error condition, but we make it a warning because
    * there are some baseline files out there with all zeroes in these bytes.
    */
+
+/*
+JPEG in MSG gives always warnings; get rid of it! 
   if (cinfo->Ss != 0 || cinfo->Se != DCTSIZE2-1 ||
       cinfo->Ah != 0 || cinfo->Al != 0)
     WARNMS(cinfo, JWRN_NOT_SEQUENTIAL);
+*/
 
   for (ci = 0; ci < cinfo->comps_in_scan; ci++) {
     compptr = cinfo->cur_comp_info[ci];
@@ -204,8 +208,12 @@ jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, boolean isDC, int tblno,
     /* code is now 1 more than the last code used for codelength si; but
      * it must still fit in si bits, since no code is allowed to be all ones.
      */
+
+#define REMOVE_CHECK 1
+#if REMOVE_CHECK == 0
     if (((INT32) code) >= (((INT32) 1) << si))
       ERREXIT(cinfo, JERR_BAD_HUFF_TABLE);
+#endif
     code <<= 1;
     si++;
   }

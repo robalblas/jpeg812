@@ -69,6 +69,10 @@ jpeg_idct_float (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 		 JCOEFPTR coef_block,
 		 JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   FAST_FLOAT tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
   FAST_FLOAT tmp10, tmp11, tmp12, tmp13;
   FAST_FLOAT z5, z10, z11, z12, z13;

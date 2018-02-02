@@ -248,6 +248,10 @@ LOCAL(void)
 prepare_range_limit_table (j_decompress_ptr cinfo)
 /* Allocate and fill in the sample_range_limit table */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   JSAMPLE * table;
   int i;
 

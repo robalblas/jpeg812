@@ -23,6 +23,8 @@
  * works regardless of which command line style is used.
  */
 
+int big_endian=0;
+
 #include "cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
 #include "jversion.h"		/* for version message */
 
@@ -38,6 +40,11 @@
 #endif
 #endif
 
+#ifdef BITS_IN_JSAMPLE_8_12
+int bits_in_jsample=8;
+int MAXJSAMPLE=255;
+int CENTERJSAMPLE=128;
+#endif
 
 /* Create the add-on message string table. */
 
@@ -334,6 +341,14 @@ parse_switches (j_decompress_ptr cinfo, int argc, char **argv,
       /* Targa output format. */
       requested_fmt = FMT_TARGA;
 
+    } else if (keymatch(arg, "8b", 2)) {
+      bits_in_jsample=8;
+      MAXJSAMPLE=255;
+      CENTERJSAMPLE=128;
+    } else if (keymatch(arg, "12b", 3)) {
+      bits_in_jsample=12;
+      MAXJSAMPLE=4095;
+      CENTERJSAMPLE=2048;
     } else {
       usage();			/* bogus switch */
     }
@@ -524,7 +539,6 @@ main (int argc, char **argv)
 #ifdef PROGRESS_REPORT
   start_progress_monitor((j_common_ptr) &cinfo, &progress);
 #endif
-
   /* Specify data source for decompression */
   jpeg_stdio_src(&cinfo, input_file);
 

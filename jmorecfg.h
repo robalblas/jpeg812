@@ -20,8 +20,14 @@
  * We do not support run-time selection of data precision, sorry.
  */
 
-#define BITS_IN_JSAMPLE  8	/* use 8 or 12 */
+/* Define switchable 8/12 */
+#define BITS_IN_JSAMPLE_8_12
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#define BITS_IN_JSAMPLE  12
+#else
+#define BITS_IN_JSAMPLE  8	/* use 8 or 12 */
+#endif
 
 /*
  * Maximum number of components (color channels) allowed in JPEG image.
@@ -89,6 +95,10 @@ typedef short JSAMPLE;
 
 #endif /* BITS_IN_JSAMPLE == 12 */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#undef MAXJSAMPLE
+#undef CENTERJSAMPLE
+#endif
 
 /* Representation of a DCT frequency coefficient.
  * This should be a signed value of at least 16 bits; "short" is usually OK.

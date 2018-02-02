@@ -39,12 +39,19 @@
 
 /* Scaling is the same as in jidctint.c. */
 
+
+#ifdef BITS_IN_JSAMPLE_8_12
+#define CONST_BITS  13
+#else
+
 #if BITS_IN_JSAMPLE == 8
 #define CONST_BITS  13
 #define PASS1_BITS  2
 #else
 #define CONST_BITS  13
 #define PASS1_BITS  1		/* lose a little precision to avoid overflow */
+#endif
+
 #endif
 
 /* Some C compilers fail to reduce "FIX(constant)" at compile time, thus
@@ -119,6 +126,10 @@ jpeg_idct_4x4 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   INT32 tmp0, tmp2, tmp10, tmp12;
   INT32 z1, z2, z3, z4;
   JCOEFPTR inptr;
@@ -128,6 +139,9 @@ jpeg_idct_4x4 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
   JSAMPLE *range_limit = IDCT_range_limit(cinfo);
   int ctr;
   int workspace[DCTSIZE*4];	/* buffers data between passes */
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PASS1_BITS=(cinfo->bits_in_jsample==8? 2 : 1);
+#endif
   SHIFT_TEMPS
 
   /* Pass 1: process columns from input, store into work array. */
@@ -272,6 +286,10 @@ jpeg_idct_2x2 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   INT32 tmp0, tmp10, z1;
   JCOEFPTR inptr;
   ISLOW_MULT_TYPE * quantptr;
@@ -280,6 +298,9 @@ jpeg_idct_2x2 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
   JSAMPLE *range_limit = IDCT_range_limit(cinfo);
   int ctr;
   int workspace[DCTSIZE*2];	/* buffers data between passes */
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PASS1_BITS=(cinfo->bits_in_jsample==8? 2 : 1);
+#endif
   SHIFT_TEMPS
 
   /* Pass 1: process columns from input, store into work array. */
@@ -380,6 +401,10 @@ jpeg_idct_1x1 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 	       JCOEFPTR coef_block,
 	       JSAMPARRAY output_buf, JDIMENSION output_col)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   int dcval;
   ISLOW_MULT_TYPE * quantptr;
   JSAMPLE *range_limit = IDCT_range_limit(cinfo);

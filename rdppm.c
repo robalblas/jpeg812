@@ -295,6 +295,7 @@ get_word_rgb_row (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
 METHODDEF(void)
 start_input_ppm (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
 {
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
   ppm_source_ptr source = (ppm_source_ptr) sinfo;
   int c;
   unsigned int w, h, maxval;

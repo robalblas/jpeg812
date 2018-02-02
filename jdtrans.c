@@ -16,7 +16,7 @@
 
 
 /* Forward declarations */
-LOCAL(void) transdecode_master_selection JPP((j_decompress_ptr cinfo));
+GLOBAL(void) transdecode_master_selection JPP((j_decompress_ptr cinfo));
 
 
 /*
@@ -93,7 +93,7 @@ jpeg_read_coefficients (j_decompress_ptr cinfo)
  * This substitutes for jdmaster.c's initialization of the full decompressor.
  */
 
-LOCAL(void)
+GLOBAL(void)
 transdecode_master_selection (j_decompress_ptr cinfo)
 {
   /* This is effectively a buffered-image operation. */

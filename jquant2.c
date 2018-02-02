@@ -124,6 +124,7 @@
  * arrays are in far memory (same arrangement as we use for image arrays).
  */
 
+#define MAXNUMCOLORS1  (4096+1) /* maximum size of colormap */
 #define MAXNUMCOLORS  (MAXJSAMPLE+1) /* maximum size of colormap */
 
 /* These will do the right thing for either R,G,B or B,G,R color order,
@@ -139,10 +140,17 @@
 #define HIST_C2_ELEMS  (1<<HIST_C2_BITS)
 
 /* These are the amounts to shift an input value to get a histogram index. */
+
+
+#ifdef BITS_IN_JSAMPLE_8_12
+#define C0_SHIFT  (cinfo->bits_in_jsample-HIST_C0_BITS)
+#define C1_SHIFT  (cinfo->bits_in_jsample-HIST_C1_BITS)
+#define C2_SHIFT  (cinfo->bits_in_jsample-HIST_C2_BITS)
+#else
 #define C0_SHIFT  (BITS_IN_JSAMPLE-HIST_C0_BITS)
 #define C1_SHIFT  (BITS_IN_JSAMPLE-HIST_C1_BITS)
 #define C2_SHIFT  (BITS_IN_JSAMPLE-HIST_C2_BITS)
-
+#endif
 
 typedef UINT16 histcell;	/* histogram cell; prefer an unsigned type */
 
@@ -177,12 +185,19 @@ typedef hist2d * hist3d;	/* type for top-level pointer */
  * segment to hold the error array; so it is allocated with alloc_large.
  */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+typedef INT32 FSERROR;		/* may need more than 16 bits */
+typedef INT32 LOCFSERROR;	/* be sure calculation temps are big enough */
+#else
+
 #if BITS_IN_JSAMPLE == 8
 typedef INT16 FSERROR;		/* 16 bits should be enough */
 typedef int LOCFSERROR;		/* use 'int' for calculation temps */
 #else
 typedef INT32 FSERROR;		/* may need more than 16 bits */
 typedef INT32 LOCFSERROR;	/* be sure calculation temps are big enough */
+#endif
+
 #endif
 
 typedef FSERROR FAR *FSERRPTR;	/* pointer to error array (in FAR storage!) */
@@ -231,6 +246,7 @@ prescan_quantize (j_decompress_ptr cinfo, JSAMPARRAY input_buf,
   int row;
   JDIMENSION col;
   JDIMENSION width = cinfo->output_width;
+
 
   for (row = 0; row < num_rows; row++) {
     ptr = input_buf[row];
@@ -539,6 +555,9 @@ LOCAL(void)
 select_colors (j_decompress_ptr cinfo, int desired_colors)
 /* Master routine for color selection */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   boxptr boxlist;
   int numboxes;
   int i;
@@ -659,7 +678,7 @@ find_nearby_colors (j_decompress_ptr cinfo, int minc0, int minc1, int minc2,
   int centerc0, centerc1, centerc2;
   int i, x, ncolors;
   INT32 minmaxdist, min_dist, max_dist, tdist;
-  INT32 mindist[MAXNUMCOLORS];	/* min distance to colormap entry i */
+  INT32 mindist[MAXNUMCOLORS1];	/* min distance to colormap entry i */
 
   /* Compute true coordinates of update box's upper corner and center.
    * Actually we compute the coordinates of the center of the upper-corner
@@ -864,7 +883,7 @@ fill_inverse_cmap (j_decompress_ptr cinfo, int c0, int c1, int c2)
   register JSAMPLE * cptr;	/* pointer into bestcolor[] array */
   register histptr cachep;	/* pointer into main cache array */
   /* This array lists the candidate colormap indexes. */
-  JSAMPLE colorlist[MAXNUMCOLORS];
+  JSAMPLE colorlist[MAXNUMCOLORS1];
   int numcolors;		/* number of candidate colors */
   /* This array holds the actually closest colormap index for each cell. */
   JSAMPLE bestcolor[BOX_C0_ELEMS * BOX_C1_ELEMS * BOX_C2_ELEMS];
@@ -1108,6 +1127,9 @@ LOCAL(void)
 init_error_limit (j_decompress_ptr cinfo)
 /* Allocate and fill in the error_limiter table */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cquantize_ptr cquantize = (my_cquantize_ptr) cinfo->cquantize;
   int * table;
   int in, out;
@@ -1166,6 +1188,9 @@ finish_pass2 (j_decompress_ptr cinfo)
 METHODDEF(void)
 start_pass_2_quant (j_decompress_ptr cinfo, boolean is_pre_scan)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cquantize_ptr cquantize = (my_cquantize_ptr) cinfo->cquantize;
   hist3d histogram = cquantize->histogram;
   int i;
@@ -1243,6 +1268,9 @@ new_color_map_2_quant (j_decompress_ptr cinfo)
 GLOBAL(void)
 jinit_2pass_quantizer (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cquantize_ptr cquantize;
   int i;
 

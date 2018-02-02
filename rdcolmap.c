@@ -45,6 +45,7 @@
 LOCAL(void)
 add_map_entry (j_decompress_ptr cinfo, int R, int G, int B)
 {
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
   JSAMPROW colormap0 = cinfo->colormap[0];
   JSAMPROW colormap1 = cinfo->colormap[1];
   JSAMPROW colormap2 = cinfo->colormap[2];
@@ -170,6 +171,7 @@ read_pbm_integer (j_decompress_ptr cinfo, FILE * infile)
 LOCAL(void)
 read_ppm_map (j_decompress_ptr cinfo, FILE * infile)
 {
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
   int c;
   unsigned int w, h, maxval, row, col;
   int R, G, B;
@@ -230,6 +232,7 @@ read_ppm_map (j_decompress_ptr cinfo, FILE * infile)
 GLOBAL(void)
 read_color_map (j_decompress_ptr cinfo, FILE * infile)
 {
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
   /* Allocate space for a color map of maximum supported size. */
   cinfo->colormap = (*cinfo->mem->alloc_sarray)
     ((j_common_ptr) cinfo, JPOOL_IMAGE,

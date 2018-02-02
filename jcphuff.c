@@ -383,6 +383,9 @@ encode_mcu_DC_first (j_compress_ptr cinfo, JBLOCKROW *MCU_data)
   int Al = cinfo->Al;
   JBLOCKROW block;
   jpeg_component_info * compptr;
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAX_COEF_BITS=(cinfo->bits_in_jsample==8? MAX_COEF_BITS8 : MAX_COEF_BITS12);
+#endif
   ISHIFT_TEMPS
 
   entropy->next_output_byte = cinfo->dest->next_output_byte;
@@ -470,6 +473,9 @@ encode_mcu_AC_first (j_compress_ptr cinfo, JBLOCKROW *MCU_data)
   int Se = cinfo->Se;
   int Al = cinfo->Al;
   JBLOCKROW block;
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAX_COEF_BITS=(cinfo->bits_in_jsample==8? MAX_COEF_BITS8 : MAX_COEF_BITS12);
+#endif
 
   entropy->next_output_byte = cinfo->dest->next_output_byte;
   entropy->free_in_buffer = cinfo->dest->free_in_buffer;

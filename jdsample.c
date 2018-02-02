@@ -347,11 +347,15 @@ h2v2_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 {
   JSAMPARRAY output_data = *output_data_ptr;
   register JSAMPROW inptr0, inptr1, outptr;
+/* BITS_IN_JSAMPLE_8_12
 #if BITS_IN_JSAMPLE == 8
   register int thiscolsum, lastcolsum, nextcolsum;
 #else
+*/
   register INT32 thiscolsum, lastcolsum, nextcolsum;
+/*
 #endif
+*/
   register JDIMENSION colctr;
   int inrow, outrow, v;
 

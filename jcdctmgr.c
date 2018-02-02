@@ -183,6 +183,9 @@ forward_DCT (j_compress_ptr cinfo, jpeg_component_info * compptr,
 	     JDIMENSION num_blocks)
 /* This version is used for integer DCT implementations. */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   /* This routine is heavily used, so it's worth coding it tightly. */
   my_fdct_ptr fdct = (my_fdct_ptr) cinfo->fdct;
   forward_DCT_method_ptr do_dct = fdct->do_dct;
@@ -273,6 +276,9 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
 		   JDIMENSION num_blocks)
 /* This version is used for floating-point DCT implementations. */
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   /* This routine is heavily used, so it's worth coding it tightly. */
   my_fdct_ptr fdct = (my_fdct_ptr) cinfo->fdct;
   float_DCT_method_ptr do_dct = fdct->do_float_dct;
@@ -340,13 +346,14 @@ forward_DCT_float (j_compress_ptr cinfo, jpeg_component_info * compptr,
 /*
  * Initialize FDCT manager.
  */
+int bits_in_jsample;
 
 GLOBAL(void)
 jinit_forward_dct (j_compress_ptr cinfo)
 {
   my_fdct_ptr fdct;
   int i;
-
+bits_in_jsample=cinfo->bits_in_jsample;
   fdct = (my_fdct_ptr)
     (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
 				SIZEOF(my_fdct_controller));

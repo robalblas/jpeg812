@@ -25,7 +25,6 @@
  * work in floating-point ones.
  * Quantization of the output coefficients is done by jcdctmgr.c.
  */
-
 #if BITS_IN_JSAMPLE == 8
 typedef int DCTELEM;		/* 16 or 32 bits is fine */
 #else
@@ -63,6 +62,10 @@ typedef INT32 IFAST_MULT_TYPE;	/* need 32 bits for scaled quantizers */
 #endif
 typedef FAST_FLOAT FLOAT_MULT_TYPE; /* preferred floating type */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#undef IFAST_SCALE_BITS
+#define IFAST_SCALE_BITS (cinfo->bits_in_jsample==8? 2 : 13)
+#endif
 
 /*
  * Each IDCT routine is responsible for range-limiting its results and

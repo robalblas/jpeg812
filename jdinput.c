@@ -26,7 +26,6 @@ typedef struct {
 
 typedef my_input_controller * my_inputctl_ptr;
 
-
 /* Forward declarations */
 METHODDEF(int) consume_markers JPP((j_decompress_ptr cinfo));
 
@@ -34,7 +33,6 @@ METHODDEF(int) consume_markers JPP((j_decompress_ptr cinfo));
 /*
  * Routines to calculate various quantities related to the size of the image.
  */
-
 LOCAL(void)
 initial_setup (j_decompress_ptr cinfo)
 /* Called once, when first SOS marker is reached */
@@ -42,14 +40,38 @@ initial_setup (j_decompress_ptr cinfo)
   int ci;
   jpeg_component_info *compptr;
 
+#ifndef BITS_IN_JSAMPLE_8_12
   /* Make sure image isn't bigger than I can handle */
   if ((long) cinfo->image_height > (long) JPEG_MAX_DIMENSION ||
       (long) cinfo->image_width > (long) JPEG_MAX_DIMENSION)
     ERREXIT1(cinfo, JERR_IMAGE_TOO_BIG, (unsigned int) JPEG_MAX_DIMENSION);
+#endif
 
   /* For now, precision must match compiled-in value... */
+#ifdef BITS_IN_JSAMPLE_8_12
+  cinfo->bits_in_jsample=cinfo->data_precision;
+  if (cinfo->bits_in_jsample==8)
+  {
+    cinfo->MAXJSAMPLE=255;
+    cinfo->CENTERJSAMPLE=128;
+/*
+    MAXJSAMPLE=255;
+    CENTERJSAMPLE=128;
+*/
+  }
+  else
+  {
+    cinfo->MAXJSAMPLE=4095;
+    cinfo->CENTERJSAMPLE=2048;
+/*
+    MAXJSAMPLE=4095;
+    CENTERJSAMPLE=2048;
+*/
+  }
+#else
   if (cinfo->data_precision != BITS_IN_JSAMPLE)
     ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
+#endif
 
   /* Check that number of components won't exceed internal array sizes */
   if (cinfo->num_components > MAX_COMPONENTS)

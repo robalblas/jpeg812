@@ -74,12 +74,20 @@
  * shows that the values given below are the most effective.
  */
 
+
+#ifdef BITS_IN_JSAMPLE_8_12
+#define CONST_BITS  13
+
+#else
+
 #if BITS_IN_JSAMPLE == 8
 #define CONST_BITS  13
 #define PASS1_BITS  2
 #else
 #define CONST_BITS  13
 #define PASS1_BITS  1		/* lose a little precision to avoid overflow */
+#endif
+
 #endif
 
 /* Some C compilers fail to reduce "FIX(constant)" at compile time, thus
@@ -125,13 +133,19 @@
  * For 12-bit samples, a full 32-bit multiplication will be needed.
  */
 
+#ifdef BITS_IN_JSAMPLE_8_12
+#define MULTIPLY(var,const)  ((var) * (const))
+#else
+
 #if BITS_IN_JSAMPLE == 8
 #define MULTIPLY(var,const)  MULTIPLY16C16(var,const)
 #else
 #define MULTIPLY(var,const)  ((var) * (const))
 #endif
 
-
+#endif
+/* Te doen! */
+extern int bits_in_jsample;
 /*
  * Perform the forward DCT on one block of samples.
  */
@@ -144,6 +158,9 @@ jpeg_fdct_islow (DCTELEM * data)
   INT32 z1, z2, z3, z4, z5;
   DCTELEM *dataptr;
   int ctr;
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PASS1_BITS=(bits_in_jsample==8? 2 : 1);
+#endif
   SHIFT_TEMPS
 
   /* Pass 1: process rows. */

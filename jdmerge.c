@@ -82,6 +82,10 @@ typedef my_upsampler * my_upsample_ptr;
 LOCAL(void)
 build_ycc_rgb_table (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   int i;
   INT32 x;

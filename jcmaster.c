@@ -68,8 +68,10 @@ initial_setup (j_compress_ptr cinfo)
     ERREXIT(cinfo, JERR_WIDTH_OVERFLOW);
 
   /* For now, precision must match compiled-in value... */
+#ifndef BITS_IN_JSAMPLE_8_12
   if (cinfo->data_precision != BITS_IN_JSAMPLE)
     ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
+#endif
 
   /* Check that number of components won't exceed internal array sizes */
   if (cinfo->num_components > MAX_COMPONENTS)
@@ -132,6 +134,7 @@ validate_script (j_compress_ptr cinfo)
  * determine whether it uses progressive JPEG, and set cinfo->progressive_mode.
  */
 {
+  int MAX_AH_AL;      /* BITS_IN_JSAMPLE_8_12 */
   const jpeg_scan_info * scanptr;
   int scanno, ncomps, ci, coefi, thisi;
   int Ss, Se, Ah, Al;
@@ -192,11 +195,13 @@ validate_script (j_compress_ptr cinfo)
        * out-of-range reconstructed DC values during the first DC scan,
        * which might cause problems for some decoders.
        */
-#if BITS_IN_JSAMPLE == 8
-#define MAX_AH_AL 10
-#else
-#define MAX_AH_AL 13
-#endif
+
+/* BITS_IN_JSAMPLE_8_12 */
+    if (cinfo->data_precision==8)   /* was: #if BITS_IN_JSAMPLE */
+      MAX_AH_AL=10;
+    else
+      MAX_AH_AL=13;
+
       if (Ss < 0 || Ss >= DCTSIZE2 || Se < Ss || Se >= DCTSIZE2 ||
 	  Ah < 0 || Ah > MAX_AH_AL || Al < 0 || Al > MAX_AH_AL)
 	ERREXIT1(cinfo, JERR_BAD_PROG_SCRIPT, scanno);

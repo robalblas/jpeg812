@@ -29,17 +29,37 @@
  * (When the core library supports data precision reduction, a cleaner
  * implementation will be to ask for that instead.)
  */
+#ifdef BITS_IN_JSAMPLE_8_12
+
+#define PUTPPMSAMPLE1(ptr,v)  *ptr++ = (char) (v)
+#define PUTPPMSAMPLE2(ptr,v)				\
+	{ register int val_ = v;			\
+          if (dinfo->big_endian)				\
+          {						\
+	    *ptr++ = (char) ((val_ >> 8) & 0xFF);	\
+	    *ptr++ = (char) (val_ & 0xFF);		\
+	  }						\
+          else						\
+          {						\
+	    *ptr++ = (char) (val_ & 0xFF);		\
+	    *ptr++ = (char) ((val_ >> 8) & 0xFF);	\
+	  }						\
+	}
+
+#else
 
 #if BITS_IN_JSAMPLE == 8
 #define PUTPPMSAMPLE(ptr,v)  *ptr++ = (char) (v)
 #define BYTESPERSAMPLE 1
 #define PPM_MAXVAL 255
 #else
+
 #ifdef PPM_NORAWWORD
 #define PUTPPMSAMPLE(ptr,v)  *ptr++ = (char) ((v) >> (BITS_IN_JSAMPLE-8))
 #define BYTESPERSAMPLE 1
 #define PPM_MAXVAL 255
 #else
+
 /* The word-per-sample format always puts the LSB first. */
 #define PUTPPMSAMPLE(ptr,v)			\
 	{ register int val_ = v;		\
@@ -51,6 +71,7 @@
 #endif
 #endif
 
+#endif
 
 /*
  * When JSAMPLE is the same size as char, we can just fwrite() the
@@ -112,9 +133,24 @@ copy_pixel_rows (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo,
 
   ptr = dest->pub.buffer[0];
   bufferptr = dest->iobuffer;
+#ifdef BITS_IN_JSAMPLE_8_12
+  if (cinfo->bits_in_jsample==8)
+  {
+    for (col = dest->samples_per_row; col > 0; col--) {
+      PUTPPMSAMPLE1(bufferptr, GETJSAMPLE(*ptr++));
+    }
+  }
+  else
+  {
+    for (col = dest->samples_per_row; col > 0; col--) {
+      PUTPPMSAMPLE2(bufferptr, GETJSAMPLE(*ptr++));
+    }
+  }
+#else
   for (col = dest->samples_per_row; col > 0; col--) {
     PUTPPMSAMPLE(bufferptr, GETJSAMPLE(*ptr++));
   }
+#endif
   (void) JFWRITE(dest->pub.output_file, dest->iobuffer, dest->buffer_width);
 }
 
@@ -139,12 +175,33 @@ put_demapped_rgb (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo,
 
   ptr = dest->pub.buffer[0];
   bufferptr = dest->iobuffer;
+#ifdef BITS_IN_JSAMPLE_8_12
+  if (cinfo->bits_in_jsample==8)
+  {
+    for (col = cinfo->output_width; col > 0; col--) {
+      pixval = GETJSAMPLE(*ptr++);
+      PUTPPMSAMPLE1(bufferptr, GETJSAMPLE(color_map0[pixval]));
+      PUTPPMSAMPLE1(bufferptr, GETJSAMPLE(color_map1[pixval]));
+      PUTPPMSAMPLE1(bufferptr, GETJSAMPLE(color_map2[pixval]));
+    }
+  }
+  else
+  {
+    for (col = cinfo->output_width; col > 0; col--) {
+      pixval = GETJSAMPLE(*ptr++);
+      PUTPPMSAMPLE2(bufferptr, GETJSAMPLE(color_map0[pixval]));
+      PUTPPMSAMPLE2(bufferptr, GETJSAMPLE(color_map1[pixval]));
+      PUTPPMSAMPLE2(bufferptr, GETJSAMPLE(color_map2[pixval]));
+    }
+  }
+#else
   for (col = cinfo->output_width; col > 0; col--) {
     pixval = GETJSAMPLE(*ptr++);
     PUTPPMSAMPLE(bufferptr, GETJSAMPLE(color_map0[pixval]));
     PUTPPMSAMPLE(bufferptr, GETJSAMPLE(color_map1[pixval]));
     PUTPPMSAMPLE(bufferptr, GETJSAMPLE(color_map2[pixval]));
   }
+#endif
   (void) JFWRITE(dest->pub.output_file, dest->iobuffer, dest->buffer_width);
 }
 
@@ -161,9 +218,24 @@ put_demapped_gray (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo,
 
   ptr = dest->pub.buffer[0];
   bufferptr = dest->iobuffer;
+#ifdef BITS_IN_JSAMPLE_8_12
+  if (cinfo->bits_in_jsample==8)
+  {
+    for (col = cinfo->output_width; col > 0; col--) {
+      PUTPPMSAMPLE1(bufferptr, GETJSAMPLE(color_map[GETJSAMPLE(*ptr++)]));
+    }
+  }
+  else
+  {
+    for (col = cinfo->output_width; col > 0; col--) {
+      PUTPPMSAMPLE2(bufferptr, GETJSAMPLE(color_map[GETJSAMPLE(*ptr++)]));
+    }
+  }
+#else
   for (col = cinfo->output_width; col > 0; col--) {
     PUTPPMSAMPLE(bufferptr, GETJSAMPLE(color_map[GETJSAMPLE(*ptr++)]));
   }
+#endif
   (void) JFWRITE(dest->pub.output_file, dest->iobuffer, dest->buffer_width);
 }
 
@@ -175,6 +247,10 @@ put_demapped_gray (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo,
 METHODDEF(void)
 start_output_ppm (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int PPM_MAXVAL= (cinfo->bits_in_jsample==8? 255 : \
+                        ((1<<cinfo->bits_in_jsample)-1) );
+#endif
   ppm_dest_ptr dest = (ppm_dest_ptr) dinfo;
 
   /* Emit file header */
@@ -218,6 +294,12 @@ finish_output_ppm (j_decompress_ptr cinfo, djpeg_dest_ptr dinfo)
 GLOBAL(djpeg_dest_ptr)
 jinit_write_ppm (j_decompress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int BYTESPERSAMPLE=(cinfo->bits_in_jsample==8? 1 : 2);
+  int PPM_MAXVAL= (cinfo->bits_in_jsample==8? 255 : \
+                            ((1<<cinfo->bits_in_jsample)-1) );
+
+#endif
   ppm_dest_ptr dest;
 
   /* Create module interface object, fill in method pointers */

@@ -25,7 +25,7 @@
  */
 
 #if BITS_IN_JSAMPLE != 8
-  Sorry, this code only copes with 8-bit JSAMPLEs. /* deliberate syntax err */
+/*  Sorry, this code only copes with 8-bit JSAMPLEs. /* deliberate syntax err */
 #endif
 
 /*

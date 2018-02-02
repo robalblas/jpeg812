@@ -263,6 +263,7 @@ std_huff_tables (j_compress_ptr cinfo)
  * is the recommended approach since, if we add any new parameters,
  * your code will still work (they'll be set to reasonable defaults).
  */
+int bits_in_jsample;
 
 GLOBAL(void)
 jpeg_set_defaults (j_compress_ptr cinfo)
@@ -284,7 +285,8 @@ jpeg_set_defaults (j_compress_ptr cinfo)
 
   /* Initialize everything not dependent on the color space */
 
-  cinfo->data_precision = BITS_IN_JSAMPLE;
+  cinfo->data_precision =  cinfo->bits_in_jsample;
+  
   /* Set up two quantization tables using default quality of 75 */
   jpeg_set_quality(cinfo, 75, TRUE);
   /* Set up two Huffman tables */
@@ -314,8 +316,16 @@ jpeg_set_defaults (j_compress_ptr cinfo)
    * tables will be computed.  This test can be removed if default tables
    * are supplied that are valid for the desired precision.
    */
+
+/*
+#ifndef BITS_IN_JSAMPLE_8_12
+*/
   if (cinfo->data_precision > 8)
+
     cinfo->optimize_coding = TRUE;
+/*
+#endif
+*/
 
   /* By default, use the simpler non-cosited sampling alignment */
   cinfo->CCIR601_sampling = FALSE;

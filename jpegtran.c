@@ -25,6 +25,9 @@
 #endif
 #endif
 
+#ifdef BITS_IN_JSAMPLE_8_12
+int bits_in_jsample=8;
+#endif
 
 /*
  * Argument-parsing code.

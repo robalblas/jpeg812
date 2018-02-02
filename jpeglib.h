@@ -292,6 +292,11 @@ struct jpeg_compress_struct {
    */
 
   int data_precision;		/* bits of precision in image data */
+  int bits_in_jsample;
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE;
+  int CENTERJSAMPLE;
+#endif
 
   int num_components;		/* # of color components in JPEG image */
   J_COLOR_SPACE jpeg_color_space; /* colorspace of JPEG image */
@@ -531,7 +536,11 @@ struct jpeg_decompress_struct {
    */
 
   int data_precision;		/* bits of precision in image data */
-
+  int bits_in_jsample;
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE;
+  int CENTERJSAMPLE;
+#endif
   jpeg_component_info * comp_info;
   /* comp_info[i] describes component that appears i'th in SOF */
 

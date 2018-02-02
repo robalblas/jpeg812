@@ -350,13 +350,16 @@ flush_bits (working_state * state)
 /* Encode a single block's worth of coefficients */
 
 LOCAL(boolean)
-encode_one_block (working_state * state, JCOEFPTR block, int last_dc_val,
+encode_one_block (j_compress_ptr cinfo,working_state * state, 
+                  JCOEFPTR block, int last_dc_val,
 		  c_derived_tbl *dctbl, c_derived_tbl *actbl)
 {
   register int temp, temp2;
   register int nbits;
   register int k, r, i;
-  
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAX_COEF_BITS=(cinfo->bits_in_jsample==8? MAX_COEF_BITS8 : MAX_COEF_BITS12);
+#endif
   /* Encode the DC coefficient difference per section F.1.2.1 */
   
   temp = temp2 = block[0] - last_dc_val;
@@ -497,7 +500,7 @@ encode_mcu_huff (j_compress_ptr cinfo, JBLOCKROW *MCU_data)
   for (blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++) {
     ci = cinfo->MCU_membership[blkn];
     compptr = cinfo->cur_comp_info[ci];
-    if (! encode_one_block(&state,
+    if (! encode_one_block(cinfo,&state,
 			   MCU_data[blkn][0], state.cur.last_dc_val[ci],
 			   entropy->dc_derived_tbls[compptr->dc_tbl_no],
 			   entropy->ac_derived_tbls[compptr->ac_tbl_no]))
@@ -575,7 +578,10 @@ htest_one_block (j_compress_ptr cinfo, JCOEFPTR block, int last_dc_val,
   register int temp;
   register int nbits;
   register int k, r;
-  
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAX_COEF_BITS=(cinfo->bits_in_jsample==8? MAX_COEF_BITS8 : MAX_COEF_BITS12);
+#endif
+
   /* Encode the DC coefficient difference per section F.1.2.1 */
   
   temp = block[0] - last_dc_val;

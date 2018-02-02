@@ -67,7 +67,7 @@ typedef my_color_converter * my_cconvert_ptr;
  */
 
 #define R_Y_OFF		0			/* offset to R => Y section */
-#define G_Y_OFF		(1*(MAXJSAMPLE+1))	/* offset to G => Y section */
+#define G_Y_OFF		(1*(MAXJSAMPLE+1)) /* offset to G => Y section */
 #define B_Y_OFF		(2*(MAXJSAMPLE+1))	/* etc. */
 #define R_CB_OFF	(3*(MAXJSAMPLE+1))
 #define G_CB_OFF	(4*(MAXJSAMPLE+1))
@@ -85,6 +85,10 @@ typedef my_color_converter * my_cconvert_ptr;
 METHODDEF(void)
 rgb_ycc_start (j_compress_ptr cinfo)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+  int CENTERJSAMPLE=cinfo->CENTERJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   INT32 * rgb_ycc_tab;
   INT32 i;
@@ -131,6 +135,9 @@ rgb_ycc_convert (j_compress_ptr cinfo,
 		 JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
 		 JDIMENSION output_row, int num_rows)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   register int r, g, b;
   register INT32 * ctab = cconvert->rgb_ycc_tab;
@@ -187,6 +194,9 @@ rgb_gray_convert (j_compress_ptr cinfo,
 		  JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
 		  JDIMENSION output_row, int num_rows)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   register int r, g, b;
   register INT32 * ctab = cconvert->rgb_ycc_tab;
@@ -226,6 +236,9 @@ cmyk_ycck_convert (j_compress_ptr cinfo,
 		   JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
 		   JDIMENSION output_row, int num_rows)
 {
+#ifdef BITS_IN_JSAMPLE_8_12
+  int MAXJSAMPLE=cinfo->MAXJSAMPLE;
+#endif
   my_cconvert_ptr cconvert = (my_cconvert_ptr) cinfo->cconvert;
   register int r, g, b;
   register INT32 * ctab = cconvert->rgb_ycc_tab;
