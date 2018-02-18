@@ -16,12 +16,14 @@
 CC= gcc 
 
 # You may need to adjust these cc options:
-CFLAGS= -O
+#CFLAGS= -O -fPIC -m32
+CFLAGS= -O -fPIC
 # Generally, we recommend defining any configuration symbols in jconfig.h,
 # NOT via -D switches here.
 
 # Link-time cc options:
-LDFLAGS= 
+#LDFLAGS=-m32
+LDFLAGS=
 
 # To link any special libraries, add the necessary -l commands here.
 LDLIBS= 
@@ -118,7 +120,7 @@ all_win: jpeg812.dll
 
 libjpeg812.so: $(LIBOBJECTS) wrppm.o
 	$(RM) libjpeg812.so
-	$(CC) -o libjpeg812.so -shared $(LIBOBJECTS) wrppm.o
+	$(CC) $(LDFLAGS) -o libjpeg812.so -shared $(LIBOBJECTS) wrppm.o
 
 jpeg812.dll: $(LIBOBJECTS) wrppm.o
 	dlltool --export-all --output-def jpeg.def $(LIBOBJECTS) wrppm.o
